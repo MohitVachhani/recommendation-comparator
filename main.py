@@ -94,6 +94,7 @@ if __name__ == "__main__":
             # Dictionary to store evaluation results for each model
             model_evaluation_results = {model: [] for model in models}
 
+
             for file_path in files_with_llm_recommendation:
                 logging.info("***** Processing file: {} *****".format(file_path))
                 merged_output_json = {
@@ -101,9 +102,11 @@ if __name__ == "__main__":
                 }
                 for model in models:
                     output_json = create_output_json([file_path], model)
-                    merged_output_json['llmRecommendation'].extend(output_json['llmRecommendation'])
-                    merged_output_json[f'{model}Recommendation'] = output_json[f'{model}Recommendation']
+                    # Use set to remove duplicates while maintaining order
+                    merged_output_json['llmRecommendation'] = list(dict.fromkeys(merged_output_json['llmRecommendation'] + output_json['llmRecommendation']))
+                    merged_output_json[f'{model}Recommendation'] = list(dict.fromkeys(output_json[f'{model}Recommendation']))
 
+           
                 # Example: evaluate for each model
                 evaluation_results = {}
                 for model in models:
@@ -112,9 +115,9 @@ if __name__ == "__main__":
                             merged_output_json['llmRecommendation'],
                             merged_output_json[f'{model}Recommendation']
                         )
+                        logging.info("***** Evaluation Result for {}: {} *****".format(model, json.dumps(evaluation_result, indent=4)))
                         evaluation_results[model] = evaluation_result
                         model_evaluation_results[model].append(evaluation_result)
-                        logging.info("***** Evaluation Result for {}: {} *****".format(model, json.dumps(evaluation_result, indent=4)))
                     else:
                         logging.warning(f"No recommendations found for model: {model} in file: {file_path}")
 
