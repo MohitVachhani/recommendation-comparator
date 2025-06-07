@@ -37,6 +37,8 @@ def create_output_json(files, model):
                         llm_recs = document['llmRecommendations']
                         model_recs = document[f'{model}Recommendations']
                         if isinstance(llm_recs, list) and isinstance(model_recs, list):
+                            # Sort llm_recs based on similarityScore
+                            llm_recs = sorted(llm_recs, key=lambda x: x.get('similarityScore', 0), reverse=True)
                             for llm_rec, model_rec in zip(llm_recs, model_recs):
                                 output_data['llmRecommendation'].append(llm_rec.get('merchantSKU', ''))
                                 output_data[f'{model}Recommendation'].append(model_rec.get('merchantSKU', ''))
@@ -80,7 +82,7 @@ def evaluate_recommendation(llm: List[str], embedding: List[str]) -> Dict[str, A
 if __name__ == "__main__":
     base_dir = 'dataSet'
     key_to_find = 'llmRecommendations'
-    models = ['qwen', 'qwen1', 'qwen2']
+    models = ['qwen', 'similar']
 
     # Process each folder in dataSet
     for folder_name in os.listdir(base_dir):
@@ -106,6 +108,7 @@ if __name__ == "__main__":
                     merged_output_json['llmRecommendation'] = list(dict.fromkeys(merged_output_json['llmRecommendation'] + output_json['llmRecommendation']))
                     merged_output_json[f'{model}Recommendation'] = list(dict.fromkeys(output_json[f'{model}Recommendation']))
 
+                
            
                 # Example: evaluate for each model
                 evaluation_results = {}
